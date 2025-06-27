@@ -40,3 +40,20 @@ def test_six_axis_robot_invalid_input_lenght():
     with pytest.raises(ValueError):
         robot.set_joint_angles(angles)
 
+def test_six_axis_repr_output():
+    robot = Six_axis_robot()
+    # Set a known configuration
+    test_angles = [10, -20, 30, -40, 50, -60]
+    robot.set_joint_angles(test_angles)
+
+    # Get the string representation
+    repr_output = repr(robot)
+    lines = repr_output.strip().split("\n")
+
+    # Check that each line contains the corresponding joint name and angle
+    expected_names = ["Base", "Shoulder", "Elbow", "Wrist1", "Wrist2", "Wrist3"]
+    assert len(lines) == 6
+    for name, angle, line in zip(expected_names, test_angles, lines):
+        assert name in line
+        assert f"{angle} deg" in line
+
