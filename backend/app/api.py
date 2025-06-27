@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from backend.robot.six_axis_robot import SixAxisRobot
+import backend.robot.motion_planning as motion
 from typing import List
 
 
@@ -30,6 +31,7 @@ class JointAngles(BaseModel):
 
 @app.post("/move")
 def move_robot(data: JointAngles):
-    robot.set_joint_angles(data.angles)
-    print("message recieved", data.angles)
+    curr_angles = robot.get_joint_angles()
+    path = motion.linear_interpolation(curr_angles, data.angles, 10)
+    motion.execute_movement(robot, path)
     return {"message": "Joint angles updated", "angles": data.angles}
