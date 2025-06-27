@@ -73,6 +73,18 @@ class SixAxisRobot:
 
         angles_rad = [np.radians(a) for a in angles_deg]
         self.pose = self.model.forward(angles_rad)
+        print(self.get_joint_angles())
+    
+    def get_joint_angles(self) -> List[float]:
+        """
+        Returns a list of the current angles (in degrees) for each joint.
+
+        Returns
+        -------
+        List[float]
+            The current angle of each joint in degrees
+        """
+        return [joint.current_angle for joint in self.joints]
 
     def get_joint_states(self) -> List[str]:
         """
