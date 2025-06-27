@@ -5,7 +5,7 @@ Unit tests for the 6-axis robot module.
 
 import pytest
 from robot.joint import Joint
-from robot.six_axis_robot import Six_axis_robot
+from robot.six_axis_robot import SixAxisRobot
 
 def test_joint_within_limit():
     """
@@ -45,7 +45,7 @@ def test_set_robot_joint_angles():
     """
     Test that setting joint angles updates all robot joints correctly.
     """
-    robot = Six_axis_robot()
+    robot = SixAxisRobot()
     angles = [20, -30, 20, -30, 20, 30]
     robot.set_joint_angles(angles)
     actual_angles = [j.get_angle() for j in robot.joints]
@@ -55,7 +55,7 @@ def test_six_axis_robot_invalid_input_lenght():
     """
     Test that an invalid number of joint angles raises a ValueError.
     """
-    robot = Six_axis_robot()
+    robot = SixAxisRobot()
     angles = [90, -90, 90, -90]
     with pytest.raises(ValueError):
         robot.set_joint_angles(angles)
@@ -65,7 +65,7 @@ def test_pose_for_zero_angles():
     Test the end-effector pose when the robot is in a zero-degree configuration.
     Verifies that the computed pose matches the known expected position.
     """
-    robot = Six_axis_robot()
+    robot = SixAxisRobot()
     zero_angles = [0, 0, 0, 0, 0, 0]
     robot.set_joint_angles(zero_angles)
     pose = robot.pose.t_3_1
@@ -83,7 +83,7 @@ def test_six_axis_repr_output():
     """
     Test that the __repr__ output of the robot includes the correct joint names and angles.
     """
-    robot = Six_axis_robot()
+    robot = SixAxisRobot()
     test_angles = [10, -20, 30, -40, 50, -60]
     robot.set_joint_angles(test_angles)
     repr_output = repr(robot)

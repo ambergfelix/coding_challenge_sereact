@@ -7,7 +7,7 @@ trajectories based on linear interpolation.
 
 import numpy as np
 from typing import List
-from robot.six_axis_robot import Six_axis_robot
+from robot.six_axis_robot import SixAxisRobot
 import time
 
 def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int) -> List[List[float]]:
@@ -38,7 +38,7 @@ def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_
     steps = np.linspace(start_angles, goal_angles, num=n_steps)
     return steps.tolist()
 
-def execute_movement(robot: Six_axis_robot, path: List[List[float]], delay: float = 1/30):
+def execute_movement(robot: SixAxisRobot, path: List[List[float]], delay: float = 1/30):
     """
     Executes a given motion path by sequentially applying joint angles to the robot.
 

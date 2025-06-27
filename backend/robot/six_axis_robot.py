@@ -1,9 +1,9 @@
-from robot.joint import Joint
+from .joint import Joint
 from visual_kinematics.RobotSerial import RobotSerial
 from typing import List
 import numpy as np
 
-class Six_axis_robot:
+class SixAxisRobot:
     """
     Representation of a stationary 6-axis industrial robotic arm modeled after the Universal Robots UR5.
 
