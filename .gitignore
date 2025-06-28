@@ -35,3 +35,30 @@ pytest_cache/
 # System
 .DS_Store
 Thumbs.db
+
+# Node.js dependencies and build output
+node_modules/
+dist/
+.vite/
+
+# Vite cache
+.vitepress/
+*.tsbuildinfo
+
+# ESLint and Prettier
+.eslintcache
+.prettiercache
+
+# MyPy and coverage
+.mypy_cache/
+coverage.xml
+
+# Pydantic compiled models (if using)
+*.schema.json
+
+# Test output
+.tox/
+.nox/
+.cache/
+.pytest_cache/
+junit.xml
