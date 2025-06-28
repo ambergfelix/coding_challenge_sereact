@@ -7,7 +7,7 @@ trajectories based on linear interpolation.
 
 import numpy as np
 from typing import List
-from .six_axis_robot import SixAxisRobot
+from backend.robot.six_axis_robot import SixAxisRobot
 import time
 
 def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int) -> List[List[float]]:
