@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Alert from '@mui/material/Alert';
 
+// Functional component to control the 6-axis robot using sliders to adjust the joint's angles
 export default function JointControlPanel() {
   const [angles, setAngles] = useState(Array(6).fill(0));
   const [alertMsg, setAlertMsg] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
 
+  // Update the angles when changed on slider
   const handleChange = (i, val) => {
     const updated = [...angles];
     updated[i] = parseFloat(val);
     setAngles(updated);
   };
 
+// Send a command to move the robot to the target joint angles,
+// and display a status message upon successful or failed transmission.
   const sendToRobot = async () => {
     try {
       const response = await axios.post('http://localhost:8000/move', { angles });
@@ -26,7 +30,7 @@ export default function JointControlPanel() {
 
   return (
     <>
-      {/* Independent Alert at the top of the page */}
+      {/*Alert at the top of the page */}
       {alertMsg && (
         <div style={{
           position: 'fixed',
@@ -43,7 +47,7 @@ export default function JointControlPanel() {
         </div>
       )}
 
-      {/* Centered Control Panel */}
+      {/*Control Panel */}
       <div
         style={{
           position: 'fixed',
