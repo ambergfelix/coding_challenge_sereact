@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+// import React, { useState } from 'react';
 import axios from 'axios';
 import Alert from '@mui/material/Alert';
 
@@ -30,12 +31,12 @@ export default function JointControlPanel() {
 
   return (
     <>
-      {/*Alert at the top of the page */}
+      {/* Alert at the top of the page */}
       {alertMsg && (
         <div style={{
           position: 'fixed',
           top: 16,
-          left: '50%',
+          left: '80%',
           transform: 'translateX(-50%)',
           zIndex: 2000,
           minWidth: 300,
