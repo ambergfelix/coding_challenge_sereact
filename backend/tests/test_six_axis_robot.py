@@ -4,8 +4,8 @@ Unit tests for the 6-axis robot module.
 """
 
 import pytest
-from robot.joint import Joint
-from robot.six_axis_robot import SixAxisRobot
+from backend.robot.joint import Joint
+from backend.robot.six_axis_robot import SixAxisRobot
 
 def test_joint_within_limit():
     """

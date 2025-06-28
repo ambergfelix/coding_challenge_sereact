@@ -5,7 +5,7 @@ Unit tests for the motion planning module used in controlling the 6-axis robot a
 
 import pytest
 import numpy as np
-from robot.motion_planning import *
+from backend.robot.motion_planning import *
 
 def test_linear_interpolation():
     """
