@@ -1,6 +1,6 @@
 from backend.robot.joint import Joint
 from visual_kinematics.RobotSerial import RobotSerial
-from typing import List
+from typing import List, Tuple
 import numpy as np
 
 class SixAxisRobot:
@@ -31,7 +31,8 @@ class SixAxisRobot:
         """
         self.joints = [
             Joint("Base",       -180.0, 180.0),
-            Joint("Shoulder",   -90.0,  90.0),
+            # Limit Shoulder to not hit the ground
+            Joint("Shoulder",   -180.0,  0.0),
             Joint("Elbow",      -180.0, 180.0),
             Joint("Wrist1",     -180.0, 180.0),
             Joint("Wrist2",     -180.0, 180.0),
@@ -73,7 +74,6 @@ class SixAxisRobot:
 
         angles_rad = [np.radians(a) for a in angles_deg]
         self.pose = self.model.forward(angles_rad)
-        print(self.get_joint_angles())
     
     def get_joint_angles(self) -> List[float]:
         """
@@ -85,6 +85,10 @@ class SixAxisRobot:
             The current angle of each joint in degrees
         """
         return [joint.current_angle for joint in self.joints]
+    
+    def get_joint_limits(self) -> List[Tuple[float, float]]:
+        limits = [joint.get_limits() for joint in self.joints]
+        return limits
 
     def get_joint_states(self) -> List[str]:
         """

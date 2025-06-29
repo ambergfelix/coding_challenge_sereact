@@ -1,3 +1,4 @@
+from typing import Tuple
 class Joint:
     """
     Represents a single joint in a robotic arm.
@@ -51,6 +52,9 @@ class Joint:
             The joint's current angle.
         """
         return self.current_angle
+    
+    def get_limits(self) -> Tuple[float, float]:
+        return (self.max_angle, self.max_angle)
 
     def __repr__(self):
         """
