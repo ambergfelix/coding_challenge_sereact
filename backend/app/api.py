@@ -58,13 +58,14 @@ def move_robot(data: JointAngles):
         Contains a status message and the final joint angles after execution.
     """
     curr_angles = robot.get_joint_angles()
-    if np.allclose(curr_angles, data.angles, atol=1):
+    if np.allclose(curr_angles, data.angles, atol=1e-3):
         return {
             "message": "Joint angles already at desired position",
             "angles": data.angles
         }
 
-    path = motion.linear_interpolation(curr_angles, data.angles, 400)
+    # path = motion.linear_interpolation(curr_angles, data.angles, 400)
+    path = motion.cubic_spline_interpolation(curr_angles, data.angles, 100, robot.get_joint_limits())
     motion.execute_movement(robot, path)
 
     return {
@@ -94,7 +95,7 @@ async def joint_stream(websocket: WebSocket):
             await websocket.send_json(named_angles)
 
             # Wait before sending next update
-            await asyncio.sleep(0.2)  # 200ms = 5Hz
+            await asyncio.sleep(1/60)  # 200ms = 5Hz
     except Exception as e:
         print(f"WebSocket closed: {e}")
 
