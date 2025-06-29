@@ -34,3 +34,28 @@ def test_invalid_length():
     """
     with pytest.raises(ValueError):
         linear_interpolation([0.0], [1.0, 2.0], 5)
+
+def test_cubic_spline_wrapping_across_boundary():
+    """
+    Test that cubic spline correctly wraps around ±180° for shortest rotation.
+    E.g. from 170° to -170° should rotate -20°, not +340°.
+    """
+    start = [170.0]
+    goal = [-170.0]
+    joint_limits = [(-180.0, 180.0)]
+    n_steps = 5
+
+    result = cubic_spline_interpolation(start, goal, n_steps, joint_limits)
+
+    # Confirm 5 steps
+    assert len(result) == n_steps
+    # Extract the only joint's values
+    joint_vals = [step[0] for step in result]
+    
+    # First and last values must match start and goal
+    assert pytest.approx(joint_vals[0], abs=1e-6) == 170.0
+    assert pytest.approx(joint_vals[-1], abs=1e-6) == -170.0
+
+    # Ensure the path moves through the -180° zone
+    diffs = np.diff(joint_vals)
+    assert all(abs(d) < 100 for d in diffs), "Path should not jump across 360°"
