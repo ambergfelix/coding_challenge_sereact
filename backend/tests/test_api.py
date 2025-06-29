@@ -26,7 +26,7 @@ def test_move_robot(monkeypatch):
     
     def fake_execute_movement(robot_instance, path):
         assert isinstance(path, list)
-        assert len(path) == 10
+        assert len(path) == 100
 
     monkeypatch.setattr(api.robot, "get_joint_angles", fake_get_joint_angles)
     monkeypatch.setattr(api.motion, "execute_movement", fake_execute_movement)
