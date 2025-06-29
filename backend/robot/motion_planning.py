@@ -12,7 +12,8 @@ import time
 
 def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int) -> List[List[float]]:
     """
-    Generates a list of intermediate joint angle configurations using linear interpolation.
+    Generates a list of intermediate joint angle configurations using linear interpolation
+    with shortest path rotation for each joint in [-180,180] degrees.
 
     Parameters
     ----------
@@ -35,10 +36,31 @@ def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_
     """
     if len(start_angles) != len(goal_angles):
         raise ValueError("Length of start angles and goal angles not matching.")
-    steps = np.linspace(start_angles, goal_angles, num=n_steps)
-    return steps.tolist()
+    
+    steps = []
+    
+    for start, goal in zip(start_angles, goal_angles):
+        diff = goal - start
+        
+        # Adjust difference to the shortest rotation angle:
+        # If diff > 180°, rotating forward is longer than going backward,
+        # so subtract 360° to rotate counterclockwise (negative direction).
+        # If diff < -180°, rotating backward is longer than going forward,
+        # so add 360° to rotate clockwise (positive direction).
+        if diff > 180:
+            diff -= 360
+        elif diff < -180:
+            diff += 360
 
-def execute_movement(robot: SixAxisRobot, path: List[List[float]], delay: float = 1/30):
+        
+        interpolation = np.linspace(start, start + diff, n_steps)
+        steps.append(interpolation)
+
+    
+    # Transpose to get list of joint angle configurations at each step
+    return [list(step) for step in zip(*steps)]
+
+def execute_movement(robot: SixAxisRobot, path: List[List[float]], delay: float = 1/400):
     """
     Executes a given motion path by sequentially applying joint angles to the robot.
 
