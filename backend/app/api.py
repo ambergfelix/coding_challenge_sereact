@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+from fastapi import WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from backend.robot.six_axis_robot import SixAxisRobot
 import backend.robot.motion_planning as motion
 from typing import List
 import numpy as np
+import asyncio
 
 app = FastAPI()
 robot = SixAxisRobot()
@@ -12,7 +14,7 @@ robot = SixAxisRobot()
 # Allowed origins for CORS to enable frontend-backend interaction
 origins = [
     "http://localhost:5173",
-    "localhost:5173"
+    "http://127.0.0.1:5173"
 ]
 
 app.add_middleware(
@@ -62,10 +64,37 @@ def move_robot(data: JointAngles):
             "angles": data.angles
         }
 
-    path = motion.linear_interpolation(curr_angles, data.angles, 10)
+    path = motion.linear_interpolation(curr_angles, data.angles, 400)
     motion.execute_movement(robot, path)
 
     return {
         "message": "Joint angles updated",
         "angles": data.angles
     }
+
+@app.websocket("/joints")
+async def joint_stream(websocket: WebSocket):
+    await websocket.accept()
+    print("WebSocket connected")
+    try:
+        while True:
+            # Retrieve current joint angles from your robot
+            angles = robot.get_joint_angles()
+            
+            named_angles = {
+                "shoulder_pan_joint": angles[0],
+                "shoulder_lift_joint": angles[1],
+                "elbow_joint": angles[2],
+                "wrist_1_joint": angles[3],
+                "wrist_2_joint": angles[4],
+                "wrist_3_joint": angles[5]
+            }
+
+            # Send JSON to frontend
+            await websocket.send_json(named_angles)
+
+            # Wait before sending next update
+            await asyncio.sleep(0.2)  # 200ms = 5Hz
+    except Exception as e:
+        print(f"WebSocket closed: {e}")
+
