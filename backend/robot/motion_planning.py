@@ -10,25 +10,68 @@ from typing import List, Tuple
 from backend.robot.six_axis_robot import SixAxisRobot
 import time
 from scipy.interpolate import CubicSpline
+import math
+
+PI = math.pi
 
 
 def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int, joint_limits: List[Tuple[float, float]]) -> List[List[float]]:
+    """
+    Generates a joint-space trajectory between two angle configurations using cubic spline interpolation
+    with a via point at the midpoint. The function ensures joint limits are respected and selects the
+    shortest feasible rotational path when possible.
+
+    If the shortest path would violate joint limits, the longer alternative path is used instead.
+
+    Parameters
+    ----------
+    start_angles : List[float]
+        Initial joint angles in radians for each of the robot's 6 axes
+    goal_angles : List[float]
+        Target joint angles in radians for each of the robot's 6 axes
+    n_steps : int
+        Number of interpolation steps between start and goal configurations
+    joint_limits : List[Tuple[float, float]]
+        List of (min, max) angle bounds for each joint in radians
+
+    Returns
+    -------
+    List[List[float]]
+        A list of joint angle configurations representing the interpolated trajectory
+        where each sublist corresponds to one time step and contains 6 joint values
+
+    Notes
+    -----
+    - The goal angles are clamped to their respective joint limits before interpolation.
+    - The function attempts to use the shortest path in angular space (i.e., minimal rotation),
+      and only falls back to the longer path if required to stay within limits.
+    """
+
     var_indep = [0, 0.5, 1]
     steps = []
+    print(joint_limits)
     for start, goal, limits in zip(start_angles, goal_angles, joint_limits):
         low, high = limits
+
+        # Clamp goal angle to joint's rotational limit if it is outside the limits
+        if goal > high:
+            goal = high
+        elif goal < low:
+            goal = low
+
+
 
         diff = goal - start
         
         # Adjust difference to the shortest rotation angle:
-        # If diff > 180°, rotating forward is longer than going backward,
-        # so subtract 360° to rotate counterclockwise (negative direction).
+        # If diff > pi (180°), rotating forward is longer than going backward,
+        # so subtract 2pi (360°) to rotate counterclockwise (negative direction).
         # If diff < -180°, rotating backward is longer than going forward,
         # so add 360° to rotate clockwise (positive direction).
-        if diff > 180:
-            diff_shortest = diff - 360
-        elif diff < -180:
-            diff_shortest = diff + 360
+        if diff > PI:
+            diff_shortest = diff - 2*PI
+        elif diff < -PI:
+            diff_shortest = diff + 2*PI
         else:
             diff_shortest = diff
 
@@ -96,10 +139,10 @@ def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_
         # so subtract 360° to rotate counterclockwise (negative direction).
         # If diff < -180°, rotating backward is longer than going forward,
         # so add 360° to rotate clockwise (positive direction).
-        if diff > 180:
-            diff -= 360
-        elif diff < -180:
-            diff += 360
+        if diff > PI:
+            diff -= 2*PI
+        elif diff < -PI:
+            diff += 2*PI
 
         
         interpolation = np.linspace(start, start + diff, n_steps)
