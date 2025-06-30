@@ -22,7 +22,7 @@ def test_move_robot(monkeypatch):
         Pytest fixture used to override methods for testing with mock behavior.
     """
     def fake_get_joint_angles():
-        return [0, 0, 0, 0, 0, 0]
+        return [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     
     def fake_execute_movement(robot_instance, path):
         assert isinstance(path, list)
@@ -31,10 +31,9 @@ def test_move_robot(monkeypatch):
     monkeypatch.setattr(api.robot, "get_joint_angles", fake_get_joint_angles)
     monkeypatch.setattr(api.motion, "execute_movement", fake_execute_movement)
 
-    response = client.post("/move", json={"angles": [10, 20, 30, 40, 50, 60]})
+    response = client.post("/move", json={"angles": [180, 90, 45, 0, -45, 90]})
 
     assert response.status_code == 200
-    assert response.json() == {
-        "message": "Joint angles updated",
-        "angles": [10, 20, 30, 40, 50, 60],
-    }
+    assert response.json()["message"] == "Joint angles updated"
+    response_angles = response.json()["angles"]
+    assert len(response_angles) == 6

@@ -6,6 +6,9 @@ Unit tests for the motion planning module used in controlling the 6-axis robot a
 import pytest
 import numpy as np
 from backend.robot.motion_planning import *
+import math
+
+PI = math.pi
 
 def test_linear_interpolation():
     """
@@ -14,17 +17,17 @@ def test_linear_interpolation():
     Validates that the intermediate steps linearly match expected joint positions.
     """
     start = [0.0, 0.0]
-    goal = [10.0, 20.0]
+    goal = [PI, PI/2]
     steps = 3
     expected = [
         [0.0, 0.0],
-        [5.0, 10.0],
-        [10.0, 20.0]
+        [PI/2, PI/4],
+        [PI, PI/2]
     ]
     result = linear_interpolation(start, goal, steps)
 
     for res_row, exp_row in zip(result, expected):
-        assert res_row == pytest.approx(exp_row, abs=1e-6)
+        assert res_row == exp_row
 
 def test_invalid_length():
     """
@@ -33,16 +36,16 @@ def test_invalid_length():
     Ensures that start and goal joint angle vectors must be equal in size.
     """
     with pytest.raises(ValueError):
-        linear_interpolation([0.0], [1.0, 2.0], 5)
+        linear_interpolation([0.0], [PI, PI], 5)
 
 def test_cubic_spline_wrapping_across_boundary():
     """
     Test that cubic spline correctly wraps around ±180° for shortest rotation.
     E.g. from 170° to -170° should rotate -20°, not +340°.
     """
-    start = [170.0]
-    goal = [-170.0]
-    joint_limits = [(-180.0, 180.0)]
+    start = [0.9*PI]
+    goal = [-0.9*PI]
+    joint_limits = [(-PI, PI)]
     n_steps = 5
 
     result = cubic_spline_interpolation(start, goal, n_steps, joint_limits)
@@ -53,9 +56,9 @@ def test_cubic_spline_wrapping_across_boundary():
     joint_vals = [step[0] for step in result]
     
     # First and last values must match start and goal
-    assert pytest.approx(joint_vals[0], abs=1e-6) == 170.0
-    assert pytest.approx(joint_vals[-1], abs=1e-6) == -170.0
+    assert pytest.approx(joint_vals[0], abs=1e-6) == 0.9*PI
+    assert pytest.approx(joint_vals[-1], abs=1e-6) == -0.9*PI
 
-    # Ensure the path moves through the -180° zone
+    # Ensure the path moves through the -PI° zone
     diffs = np.diff(joint_vals)
-    assert all(abs(d) < 100 for d in diffs), "Path should not jump across 360°"
+    assert all(abs(d) < PI for d in diffs)
