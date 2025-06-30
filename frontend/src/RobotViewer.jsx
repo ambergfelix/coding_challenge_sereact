@@ -35,7 +35,7 @@ export default function RobotViewer() {
     ];
 
     joints_names.forEach((name, i) => {
-    robot?.joints[name]?.setJointValue(MathUtils.degToRad(angles[i]));
+    robot?.joints[name]?.setJointValue(angles[i]);
     robot.updateMatrixWorld(true);
     })
     };

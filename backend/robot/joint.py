@@ -19,11 +19,11 @@ class Joint:
         name : str
             Name of the joint (e.g., 'Base', 'Shoulder')
         min_angle : float
-            Minimum allowed angle for the joint in degrees
+            Minimum allowed angle for the joint in rad
         max_angle : float
-            Maximum allowed angle for the joint in degrees
+            Maximum allowed angle for the joint in rad
         current_angle : float
-            Current angle of the joint in degrees, clamped within joint limits
+            Current angle of the joint in rad, clamped within joint limits
         """
 
         self.name = name
@@ -38,13 +38,13 @@ class Joint:
         Parameters
         ----------
         angle : float
-            The target angle in degrees. If outside allowable range, it will be clamped.
+            The target angle in radians. If outside allowable range, it will be clamped.
         """
         self.current_angle = max(self.min_angle, min(self.max_angle, angle))
 
     def get_angle(self) -> float:
         """
-        Returns the joint's current angle in degrees.
+        Returns the joint's current angle in radians.
 
         Returns
         -------
@@ -54,7 +54,15 @@ class Joint:
         return self.current_angle
     
     def get_limits(self) -> Tuple[float, float]:
-        return (self.max_angle, self.max_angle)
+        """
+        Returns the joint's rotational limits
+
+        Returns
+        -------
+        Tuple[float, float]
+            Tuple containing the min and max rotation
+        """
+        return (self.min_angle, self.max_angle)
 
     def __repr__(self):
         """
@@ -63,6 +71,6 @@ class Joint:
         Returns
         -------
         str
-            A formatted string showing the joint's name and angle in degrees.
+            A formatted string showing the joint's name and angle in radians.
         """
-        return f"<Joint {self.name}: {self.current_angle:.1f} deg>"
+        return f"<Joint {self.name}: {self.current_angle:.1f} rad>"

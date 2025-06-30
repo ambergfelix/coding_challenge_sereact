@@ -2,6 +2,7 @@ import { useState } from 'react';
 // import React, { useState } from 'react';
 import axios from 'axios';
 import Alert from '@mui/material/Alert';
+import { MathUtils } from 'three';
 
 // Functional component to control the 6-axis robot using sliders to adjust the joint's angles
 export default function JointControlPanel() {
@@ -20,7 +21,8 @@ export default function JointControlPanel() {
 // and display a status message upon successful or failed transmission.
   const sendToRobot = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/move', { angles });
+      const radianAngles = angles.map(angle => MathUtils.degToRad(angle));
+      const response = await axios.post('http://localhost:8000/move', { angles: radianAngles });
       setAlertMsg(response.data.message);
       setAlertSeverity('success');
     } catch (error) {

@@ -33,7 +33,7 @@ class JointAngles(BaseModel):
     Attributes
     ----------
     angles : List[float]
-        List of desired joint angles in degrees.
+        List of desired joint angles in radians.
     """
     angles: List[float]
 
@@ -65,6 +65,7 @@ def move_robot(data: JointAngles):
         }
 
     # path = motion.linear_interpolation(curr_angles, data.angles, 400)
+    print("Robot lim: ", robot.get_joint_limits())
     path = motion.cubic_spline_interpolation(curr_angles, data.angles, 100, robot.get_joint_limits())
     motion.execute_movement(robot, path)
 

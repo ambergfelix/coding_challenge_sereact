@@ -2,6 +2,9 @@ from backend.robot.joint import Joint
 from visual_kinematics.RobotSerial import RobotSerial
 from typing import List, Tuple
 import numpy as np
+import math
+
+PI = math.pi
 
 class SixAxisRobot:
     """
@@ -30,63 +33,72 @@ class SixAxisRobot:
         for calculating the forward kinematic pose.
         """
         self.joints = [
-            Joint("Base",       -180.0, 180.0),
+            Joint("Base",       -PI, PI),
             # Limit Shoulder to not hit the ground
-            Joint("Shoulder",   -180.0,  0.0),
-            Joint("Elbow",      -180.0, 180.0),
-            Joint("Wrist1",     -180.0, 180.0),
-            Joint("Wrist2",     -180.0, 180.0),
-            Joint("Wrist3",     -180.0, 180.0)
+            Joint("Shoulder",   -PI,  0.0),
+            # Limit Elbow to not hit Shoulder
+            Joint("Elbow",      -math.radians(160), math.radians(160)),
+            Joint("Wrist1",     -PI, PI),
+            Joint("Wrist2",     -PI, PI),
+            Joint("Wrist3",     -PI, PI)
         ]
 
         # DH parameters taken from Universal Robots UR5
         self.dh_parameters = np.array([
           # d [m]       a [m]     alpha [rad] theta [rad]
-            [0.089159,  0,          np.pi/2,    0],
-            [0,         -0.425,     0,          0],
-            [0,         -0.39225,   0,          0],
-            [0.10915,   0,          np.pi/2,    0],
-            [0.09465,   0,          -np.pi/2,   0],
-            [0.0823,    0,          0,          0]
+            [0.089159,  0.0,          PI/2,         0.0],
+            [0.0,         -0.425,     0.0,          0.0],
+            [0.0,         -0.39225,   0.0,          0.0],
+            [0.10915,   0.0,          PI/2,         0.0],
+            [0.09465,   0.0,          -PI/2,        0.0],
+            [0.0823,    0.0,          0.0,          0.0]
         ])
 
         self.model = RobotSerial(self.dh_parameters)
         self.pose = self.model.forward([0] * 6)
 
-    def set_joint_angles(self, angles_deg: List[float]):
+    def set_joint_angles(self, angles: List[float]):
         """
         Sets the joint angles of each joint in the robot, within the respective rotational limits.
 
         Parameters
         ----------
-        angles_deg : List[float]
-            List of angles (in degrees) to assign to each joint
+        angles : List[float]
+            List of angles (in rad) to assign to each joint
 
         Raises
         ------
         ValueError
             If the number of provided angles does not match the number of joints
         """
-        if len(angles_deg) != len(self.joints):
+        if len(angles) != len(self.joints):
             raise ValueError("Angle list does not match joint count.")
-        for joint, angle in zip(self.joints, angles_deg):
+        for joint, angle in zip(self.joints, angles):
             joint.set_angle(angle)
 
-        angles_rad = [np.radians(a) for a in angles_deg]
-        self.pose = self.model.forward(angles_rad)
+        self.pose = self.model.forward(angles)
     
     def get_joint_angles(self) -> List[float]:
         """
-        Returns a list of the current angles (in degrees) for each joint.
+        Returns a list of the current angles (in rad) for each joint.
 
         Returns
         -------
         List[float]
-            The current angle of each joint in degrees
+            The current angle of each joint in radians
         """
         return [joint.current_angle for joint in self.joints]
     
     def get_joint_limits(self) -> List[Tuple[float, float]]:
+        """
+        Returns a list of all rotational limits of each of the robot's joints
+
+        Returns
+        -------
+        List[Tuple[float, float]]
+            List containing a tuple of min and max roataion for each joint
+        """
+        print(self.joints[0].get_limits())
         limits = [joint.get_limits() for joint in self.joints]
         return limits
 
