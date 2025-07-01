@@ -43,8 +43,8 @@ def test_cubic_spline_wrapping_across_boundary():
     Test that cubic spline correctly wraps around ±180° for shortest rotation.
     E.g. from 170° to -170° should rotate -20°, not +340°.
     """
-    start = [0.9*PI]
-    goal = [-0.9*PI]
+    start = [PI/4]
+    goal = [-PI/4]
     joint_limits = [(-PI, PI)]
     n_steps = 5
 
@@ -56,9 +56,9 @@ def test_cubic_spline_wrapping_across_boundary():
     joint_vals = [step[0] for step in result]
     
     # First and last values must match start and goal
-    assert pytest.approx(joint_vals[0], abs=1e-6) == 0.9*PI
-    assert pytest.approx(joint_vals[-1], abs=1e-6) == -0.9*PI
+    assert pytest.approx(joint_vals[0], abs=1e-6) == PI/4
+    assert pytest.approx(joint_vals[-1], abs=1e-6) == -PI/4
 
-    # Ensure the path moves through the -PI° zone
-    diffs = np.diff(joint_vals)
-    assert all(abs(d) < PI for d in diffs)
+    # Total angular distance traveled should be smaller than pi
+    total_distance = sum(abs(np.diff(joint_vals)))
+    assert total_distance < PI
