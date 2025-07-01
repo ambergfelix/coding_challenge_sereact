@@ -25,37 +25,21 @@ class SixAxisRobot:
         Current end-effector pose represented as a 4x4 transformation matrix
     """
 
-    def __init__(self):
+    def __init__(self, joints, dh_params):
         """
         Constructor for a stationary 6-axis robotic arm.
 
         Initializes all revolute joints with predefined limits and sets up the DH parameters
         for calculating the forward kinematic pose.
         """
-        self.joints = [
-            Joint("Base",       -PI, PI),
-            # Limit Shoulder to not hit the ground
-            Joint("Shoulder",   -PI,  0.0),
-            # Limit Elbow to not hit Shoulder
-            Joint("Elbow",      -math.radians(160), math.radians(160)),
-            Joint("Wrist1",     -PI, PI),
-            Joint("Wrist2",     -PI, PI),
-            Joint("Wrist3",     -PI, PI)
-        ]
 
-        # DH parameters taken from Universal Robots UR5
-        self.dh_parameters = np.array([
-          # d [m]       a [m]     alpha [rad] theta [rad]
-            [0.089159,  0.0,          PI/2,         0.0],
-            [0.0,         -0.425,     0.0,          0.0],
-            [0.0,         -0.39225,   0.0,          0.0],
-            [0.10915,   0.0,          PI/2,         0.0],
-            [0.09465,   0.0,          -PI/2,        0.0],
-            [0.0823,    0.0,          0.0,          0.0]
-        ])
-
-        self.model = RobotSerial(self.dh_parameters)
-        self.pose = self.model.forward([0] * 6)
+        self.joints = joints
+        self.dh_params = dh_params
+        self.model = RobotSerial(self.dh_params)
+    
+    def get_pose(self) -> np.ndarray:
+        return self.model.forward(self.get_joint_angles())
+    
 
     def set_joint_angles(self, angles: List[float]):
         """
@@ -98,7 +82,6 @@ class SixAxisRobot:
         List[Tuple[float, float]]
             List containing a tuple of min and max roataion for each joint
         """
-        print(self.joints[0].get_limits())
         limits = [joint.get_limits() for joint in self.joints]
         return limits
 

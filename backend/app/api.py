@@ -1,5 +1,4 @@
-from fastapi import FastAPI
-from fastapi import WebSocket
+from fastapi import FastAPI, WebSocket, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from backend.robot.six_axis_robot import SixAxisRobot
@@ -7,9 +6,11 @@ import backend.robot.motion_planning as motion
 from typing import List
 import numpy as np
 import asyncio
+import math
+
+PI = math.pi
 
 app = FastAPI()
-robot = SixAxisRobot()
 
 # Allowed origins for CORS to enable frontend-backend interaction
 origins = [
@@ -39,7 +40,7 @@ class JointAngles(BaseModel):
 
 
 @app.post("/move")
-def move_robot(data: JointAngles):
+def move_robot(data: JointAngles, request: Request):
     """
     Moves the robot arm to a new joint configuration when a /move command is received from the client.
 
@@ -57,6 +58,7 @@ def move_robot(data: JointAngles):
     dict
         Contains a status message and the final joint angles after execution.
     """
+    robot = request.app.state.robot
     curr_angles = robot.get_joint_angles()
     if np.allclose(curr_angles, data.angles, atol=1e-3):
         return {
@@ -65,13 +67,15 @@ def move_robot(data: JointAngles):
         }
 
     # path = motion.linear_interpolation(curr_angles, data.angles, 400)
-    print("Robot lim: ", robot.get_joint_limits())
-    path = motion.cubic_spline_interpolation(curr_angles, data.angles, 100, robot.get_joint_limits())
+    # path = motion.cubic_spline_interpolation(curr_angles, data.angles, 100, robot.get_joint_limits())
+    path = motion.cubic_spline_interpolation_collision_avoidance(curr_angles, data.angles, 100, robot.get_joint_limits())
+    
     motion.execute_movement(robot, path)
+    angles_new = robot.get_joint_angles()
 
     return {
         "message": "Joint angles updated",
-        "angles": data.angles
+        "angles": [math.degrees(a) for a in angles_new]
     }
 
 @app.websocket("/joints")
@@ -80,7 +84,8 @@ async def joint_stream(websocket: WebSocket):
     print("WebSocket connected")
     try:
         while True:
-            # Retrieve current joint angles from your robot
+            # Retrieve current joint angles from robot
+            robot = websocket.app.state.robot
             angles = robot.get_joint_angles()
             
             named_angles = {
