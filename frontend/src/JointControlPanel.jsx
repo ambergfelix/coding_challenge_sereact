@@ -6,7 +6,12 @@ import { MathUtils } from 'three';
 
 // Functional component to control the 6-axis robot using sliders to adjust the joint's angles
 export default function JointControlPanel() {
-  const [angles, setAngles] = useState(Array(6).fill(0));
+  const [angles, setAngles] = useState(() => {
+  const initialAngles = Array(6).fill(0);
+  initialAngles[1] = -90;
+  return initialAngles;
+  });
+
   const [alertMsg, setAlertMsg] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
 

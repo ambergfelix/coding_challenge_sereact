@@ -92,7 +92,7 @@ export default function RobotViewer() {
 
     let robot = null;
 
-    loader.load('/robot-model/ur5.urdf', result => {
+    loader.load('/robot-model/ur5/ur5.urdf', result => {
       robot = result;
     });
 
