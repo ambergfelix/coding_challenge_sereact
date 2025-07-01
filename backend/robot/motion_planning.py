@@ -13,8 +13,61 @@ import backend.utils.utils as util
 import time
 from scipy.interpolate import CubicSpline
 import math
+from pathlib import Path
+import warnings
 
 PI = math.pi
+
+def cubic_spline_interpolation_collision_avoidance(start_angles: List[float], goal_angles: List[float], n_steps: int, joint_limits: List[Tuple[float, float]]) -> List[List[float]]:
+    # Additional viapoints that include random pertubations
+    via_configs = []
+    # increase pertubation range with increasing steps!
+    perturb_range = 0.2
+    # Number of iterations until it is terminated
+    max_iter = 50
+    n_iter = 0
+    
+    
+    path_urdf = str(Path("frontend/public/robot-model/ur5/ur5.urdf"))
+    collision_check = CollisionChecker(path_urdf)
+
+    # Check if goal configuration is in collision
+    collision_check.set_angles(goal_angles)
+    if collision_check.check_any_collision():
+        warnings.warn("Collision detected at goal configuration; reverting to start.")
+        path = [start_angles]
+        return path
+    
+
+    # Create initial path without additional viapoints
+    path = cubic_spline_interpolation(start_angles, goal_angles, n_steps, joint_limits)
+
+    # Simualte path execution
+    while n_iter < max_iter:
+        perturb_range *= n_iter
+        n_iter +=1
+        collision = False
+        via_configs = []
+        collision_check.set_angles(start_angles)
+
+        for step in path:
+            collision_check.set_angles(step)
+            if collision_check.check_any_collision():
+                via_configs.append(step + np.random.uniform(-perturb_range, perturb_range, size=len(step)))
+                collision = True
+        if not collision:
+            print("good after ", n_iter, " iterations")
+            return path
+        else:
+            # If there is at least one collision create new path with pertubated viapoints
+            print(via_configs)
+            path = cubic_spline_interpolation(start_angles, goal_angles, n_steps, joint_limits, via_configs)
+
+    # If no valid path was found within the max iterations return start configuration
+    path = [start_angles]
+    return path
+
+        
 
 
 def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int, joint_limits: List[Tuple[float, float]], via_points: Optional[List[List[float]]] = None) -> List[List[float]]:
@@ -86,7 +139,7 @@ def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[floa
 
         if not viapoint_given:
             var_indep = [0, 0.5, 1]
-            points = [start + (diff_shortest / 2)]
+            var_dep = [start, end/2, end]
         else:
             # Calculate independent variables to achieve equal angle speed
             all_points = [start] + points + [goal]
@@ -94,8 +147,6 @@ def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[floa
             sum_distance = sum(distances)
             distances_norm = np.array(distances) / sum_distance
             var_indep = np.insert(np.cumsum(distances_norm), 0, 0)
-
-        var_dep = [start] + points + [end]
 
         spline = CubicSpline(var_indep, var_dep)
         t_values = np.linspace(0, 1, n_steps)
@@ -109,8 +160,9 @@ def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[floa
                 viapoint = start + (diff / 2)
                 end = start + diff
                 var_dep = [start, viapoint, end]
-            end = start + diff
-            var_dep = [start] + points + [end]
+            else:
+                end = start + diff
+                var_dep = [start] + points + [end]
 
             spline = CubicSpline(var_indep, var_dep)
             angle_values = spline(t_values)
@@ -119,47 +171,12 @@ def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[floa
     # Transpose to get list of joint angle configurations at each step
     steps_t = [list(step) for step in zip(*steps)]
     return steps_t
-
-def linear_interpolation_collision_avoidance(start_angles: List[float], goal_angles: List[float], n_steps: int) -> List[List[float]]:
-    via_configs = []
-    perturb_range = 0.2
-    collision_configs = []
-    
-    path = linear_interpolation(start_angles, goal_angles, n_steps)
-    # Simualte path execution
-    # robot_sim = SixAxisRobot()
-    # robot_sim.set_joint_angles(start_angles)
-    path_urdf = ""
-    collision_check = CollisionChecker(path_urdf)
-    collision_check.set_angles(start_angles)
-
-    for step in path:
-        collision_check.set_angles(step)
-        # robot_sim.set_joint_angles(step)
-        if collision_check.check_self_collision():
-            collision_configs.append(step)
-        if collision_check.check_environment_collision():
-            collision_configs.append(step)
-    
-    for config in collision_configs:
-        via_configs.append(config + np.random.uniform(-perturb_range, perturb_range, size=step.shape))
-
-    # Verify if new trajectory is collision free
-    path_new = linear_interpolation()
-        
-
-
-
-            
-
-
-
     
 
 def linear_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int) -> List[List[float]]:
     """
     Generates a list of intermediate joint angle configurations using linear interpolation
-    with shortest path rotation for each joint in [-180,180] degrees.
+    with shortest path rotation for each joint in [-pi,pi] radians.
 
     Parameters
     ----------
