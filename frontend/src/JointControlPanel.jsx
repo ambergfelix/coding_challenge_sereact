@@ -1,5 +1,4 @@
-import { useState } from 'react';
-// import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Alert from '@mui/material/Alert';
 import { MathUtils } from 'three';
@@ -22,6 +21,14 @@ export default function JointControlPanel() {
     setAngles(updated);
   };
 
+  useEffect(() => {
+    // Close alert message after 1s
+    if (alertMsg) {
+      const timer = setTimeout(() => setAlertMsg(''), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [alertMsg]);
+
 // Send a command to move the robot to the target joint angles,
 // and display a status message upon successful or failed transmission.
   const sendToRobot = async () => {
@@ -30,6 +37,11 @@ export default function JointControlPanel() {
       const response = await axios.post('http://localhost:8000/move', { angles: radianAngles });
       setAlertMsg(response.data.message);
       setAlertSeverity('success');
+      // Update slider values after robot has finnished moving
+      if (response.data.angles) {
+      setAngles(response.data.angles.map(angle => Math.round(MathUtils.radToDeg(Number(angle)))));
+      }
+      // Display error message if it occurs
     } catch (error) {
       setAlertMsg(error.response?.data?.detail || error.message);
       setAlertSeverity('error');
@@ -38,7 +50,7 @@ export default function JointControlPanel() {
 
   return (
     <>
-      {/* Alert at the top of the page */}
+      {/* Alert message at the top of the page */}
       {alertMsg && (
         <div style={{
           position: 'fixed',
