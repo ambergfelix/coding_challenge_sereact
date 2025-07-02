@@ -11,6 +11,11 @@ venv/
 .env
 .env.*
 
+# Virtual environments
+new_venv/
+.env
+.env.*
+
 # Build & packaging
 build/
 dist/
