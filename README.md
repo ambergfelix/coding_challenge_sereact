@@ -6,7 +6,7 @@ This project implements a Python-based control system for a stationary 6-axis ro
 
 Clone the repository:
 ```
-git clone ....
+git clone https://github.com/ambergfelix/coding_challenge_sereact.git
 ```
 in WSL2 on Windows or Linux:
 ```
@@ -20,7 +20,7 @@ alternatively:
 docker-compose up
 ```
 and open in browser:
-[link frontend](http://localhost)
+(http://localhost)
 
 # How to stop:
 ```
@@ -29,12 +29,12 @@ docker-compose down
 
 # Example input:
 Slide the sliders to desired angle and press 'Move Robot'
-Example: [60, 0, 30, 20, 10, 60]
+Example: [60, -40, 30, 20, 10, 60]
 
 # Notes:
 For this example the common 6-axis robot Universal Robot UR5 was used.
 To definine the robot and validate it the DH-Parameters were used from the official Universal Robot Website:
-[UR6 DH_parameters](https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/)
+(https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/)
 
 
 # Task 1:
@@ -54,7 +54,7 @@ Other more sophisticated techniques like RRT could possibly be implemented in th
 
 # Task 4: 
 The backend sends constant updates with the current state of the robot and a 3d visualization is used in the frontend, based on the urdf representation of the Universal Robot ROS package.
-[UR ROS Package](https://github.com/ros-industrial/universal_robot)
+(https://github.com/ros-industrial/universal_robot)
 
 # Task 5:
 Both frontend and backend are dockerized in a separate container and run together using docker compose
