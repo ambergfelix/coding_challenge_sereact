@@ -15,8 +15,17 @@ chmod +x start.sh
 ./start.sh
 ```
 
+alternatively:
+```
+docker-compose up
+```
+and open in browser:
+[link frontend](http://localhost)
+
 # How to stop:
+```
 docker-compose down
+```
 
 # Example input:
 Slide the sliders to desired angle and press 'Move Robot'
