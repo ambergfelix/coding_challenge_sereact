@@ -16,7 +16,7 @@ def collision_checker():
     Fixture for setting up the CollisionChecker with the UR5 robot model.
     Ensures PyBullet disconnects after tests run.
     """
-    path_urdf = str(Path("/robot-model/ur5/ur5.urdf"))
+    path_urdf = str(Path("robot-model/ur5/ur5.urdf"))
     checker = CollisionChecker(path_urdf)
     yield checker
     pyblt.disconnect()

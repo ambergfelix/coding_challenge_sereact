@@ -16,7 +16,7 @@ PI = math.pi
 @pytest.fixture
 def six_axis_robot():
     # Load config
-    config_path = Path("/robot-model/ur5/ur5_config.json")
+    config_path = Path("robot-model/ur5/ur5_config.json")
     with open(config_path) as f:
         config = json.load(f)
     robot = util.robot_from_config(config)
