@@ -63,23 +63,35 @@ def move_robot(data: JointAngles, request: Request):
     if np.allclose(curr_angles, data.angles, atol=1e-3):
         return {
             "message": "Joint angles already at desired position",
-            "angles": data.angles
+            "angles": curr_angles
         }
 
     # path = motion.linear_interpolation(curr_angles, data.angles, 400)
-    # path = motion.cubic_spline_interpolation(curr_angles, data.angles, 100, robot.get_joint_limits())
-    path = motion.cubic_spline_interpolation_collision_avoidance(curr_angles, data.angles, 100, robot.get_joint_limits())
+    path = motion.cubic_spline_interpolation(curr_angles, data.angles, 100, robot.get_joint_limits())
+    # path = motion.cubic_spline_interpolation_collision_avoidance(curr_angles, data.angles, 100, robot.get_joint_limits())
     
     motion.execute_movement(robot, path)
     angles_new = robot.get_joint_angles()
 
     return {
         "message": "Joint angles updated",
-        "angles": [math.degrees(a) for a in angles_new]
+        "angles": angles_new
     }
 
 @app.websocket("/joints")
 async def joint_stream(websocket: WebSocket):
+    """
+    WebSocket endpoint that streams real-time joint angles from the robot to the frontend.
+
+    Once the connection is established, this endpoint continuously sends the current values 
+    of the robot’s six joints as a JSON object approximately 60 times per second. 
+
+    Parameters
+    ----------
+    websocket : WebSocket
+        WebSocket object used for real-time communication with the client.
+    """
+
     await websocket.accept()
     print("WebSocket connected")
     try:
@@ -101,7 +113,7 @@ async def joint_stream(websocket: WebSocket):
             await websocket.send_json(named_angles)
 
             # Wait before sending next update
-            await asyncio.sleep(1/60)  # 200ms = 5Hz
+            await asyncio.sleep(1/60)
     except Exception as e:
         print(f"WebSocket closed: {e}")
 

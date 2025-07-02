@@ -19,9 +19,9 @@ class Joint:
         name : str
             Name of the joint (e.g., 'Base', 'Shoulder')
         min_angle : float
-            Minimum allowed angle for the joint in rad
+            Minimum allowed angle for the joint in radians
         max_angle : float
-            Maximum allowed angle for the joint in rad
+            Maximum allowed angle for the joint in radians
         current_angle : float
             Current angle of the joint in rad, clamped within joint limits
         """

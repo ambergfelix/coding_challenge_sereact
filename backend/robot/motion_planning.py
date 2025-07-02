@@ -19,6 +19,40 @@ import warnings
 PI = math.pi
 
 def cubic_spline_interpolation_collision_avoidance(start_angles: List[float], goal_angles: List[float], n_steps: int, joint_limits: List[Tuple[float, float]]) -> List[List[float]]:
+    """
+    Generates a collision-free joint path using cubic spline interpolation with perturbation-based avoidance.
+
+    This function attempts to create a smooth trajectory from a start to goal joint configuration
+    while avoiding collisions (self, floor, and environment). It verifies that the goal configuration is collision free first, then
+    repeatedly simulates the path and introduces randomized viapoints around collision configurations until either a 
+    valid trajectory is found or a maximum number of iterations is reached.
+
+    Parameters
+    ----------
+    start_angles : List[float]
+        The starting joint configuration (in radians).
+    goal_angles : List[float]
+        The target joint configuration (in radians).
+    n_steps : int
+        Number of interpolated steps to generate between start and goal.
+    joint_limits : List[Tuple[float, float]]
+        A list of tuples specifying the (min, max) limits for each joint.
+
+    Returns
+    -------
+    List[List[float]]
+        A list of joint angle configurations representing the full interpolated path.
+        If no valid path is found after max iterations, returns the start configuration only.
+
+    Notes
+    -----
+    - If the goal configuration is already in collision, the function immediately returns the start configuration.
+    - If collisions are encountered during path execution, the function introduces randomized
+      perturbations to create new viapoints around collision point in configuration space, refining the trajectory to avoid obstacles.
+    """
+
+    
+    
     # Additional viapoints that include random pertubations
     via_configs = []
     # increase pertubation range with increasing steps!
@@ -56,11 +90,9 @@ def cubic_spline_interpolation_collision_avoidance(start_angles: List[float], go
                 via_configs.append(step + np.random.uniform(-perturb_range, perturb_range, size=len(step)))
                 collision = True
         if not collision:
-            print("good after ", n_iter, " iterations")
             return path
         else:
             # If there is at least one collision create new path with pertubated viapoints
-            print(via_configs)
             path = cubic_spline_interpolation(start_angles, goal_angles, n_steps, joint_limits, via_configs)
 
     # If no valid path was found within the max iterations return start configuration
@@ -72,42 +104,49 @@ def cubic_spline_interpolation_collision_avoidance(start_angles: List[float], go
 
 def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[float], n_steps: int, joint_limits: List[Tuple[float, float]], via_points: Optional[List[List[float]]] = None) -> List[List[float]]:
     """
-    Generates a joint-space trajectory between two angle configurations using cubic spline interpolation
-    with one or more points in between. The function ensures joint limits are respected and selects the
-    shortest feasible rotational path when possible.
+    Generates a joint-space trajectory using cubic spline interpolation between start and goal angles.
 
-    If the shortest path would violate joint limits, the longer alternative path is used instead.
+    Supports optional viapoints to guide the spline path through intermediate configurations.
+    Ensures all joint angles remain within their specified limits and uses shortest rotational paths
+    unless infeasible due to constraints.
 
     Parameters
     ----------
     start_angles : List[float]
-        Initial joint angles in radians for each of the robot's 6 axes
+        Initial joint angles in radians for each joint.
     goal_angles : List[float]
-        Target joint angles in radians for each of the robot's 6 axes
+        Target joint angles in radians for each joint.
     n_steps : int
-        Number of interpolation steps between start and goal configurations
+        Number of discrete points to generate along the trajectory.
     joint_limits : List[Tuple[float, float]]
-        List of (min, max) angle bounds for each joint in radians
-    via_points : Optional[List[List[float]]] = None
-        Optional list of via points for interpolation, if none are passed, the middle of the path is set as the only viapoint
+        A list of (min, max) joint angle boundaries for each joint (in radians).
+    via_points : Optional[List[List[float]]], optional
+        A list of intermediate joint angles to pass through, provided as a list.
+        Each element in the outer list corresponds to one joint and should contain a list of intermediate
+        angles for that joint. If None or empty, a single midpoint is automatically inserted for each joint.
 
     Returns
     -------
     List[List[float]]
-        A list of joint angle configurations representing the interpolated trajectory
-        where each sublist corresponds to one time step and contains 6 joint values
+        A list of joint angle configurations, one for each step along the trajectory.
+        Each configuration is a list of joint angles in radians.
+
+    Raises
+    ------
+    ValueError
+        If the trajectory violates joint limits and no valid alternative path can be found.
 
     Notes
     -----
-    - The goal angles are clamped to their respective joint limits before interpolation.
-    - The function attempts to use the shortest path in angular space (i.e., minimal rotation),
-      and only falls back to the longer path if required to stay within limits.
+    - For angular wrapping, shortest rotation is attempted via ±2π normalization.
+    - If via_points are provided, they will override automatic midpoint insertion.
     """
+
 
     steps = []
 
     if via_points is None or len(via_points) == 0:
-        via_points = [[] for x in range(len(start_angles))]
+        via_points = [[] for _ in range(len(start_angles))]
 
     for start, goal, limits, points in zip(start_angles, goal_angles, joint_limits, via_points):
         low, high = limits
@@ -120,30 +159,16 @@ def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[floa
             goal = low
         
         diff = goal - start
-        
-        # Adjust difference to the shortest rotation angle:
-        # If diff > pi (180°), rotating forward is longer than going backward,
-        # so subtract 2pi (360°) to rotate counterclockwise (negative direction).
-        # If diff < -pi (-180°), rotating backward is longer than going forward,
-        # so add 2pi (360°) to rotate clockwise (positive direction).
-        if diff > PI:
-            diff_shortest = diff - 2*PI
-        elif diff < -PI:
-            diff_shortest = diff + 2*PI
-        else:
-            diff_shortest = diff
-
-        end = start + diff_shortest
-
-        
 
         if not viapoint_given:
             var_indep = [0, 0.5, 1]
-            var_dep = [start, end/2, end]
+            var_dep = np.unwrap([start, goal])
+            viapoint = var_dep[0] + (var_dep[1] - var_dep[0]) / 2
+            var_dep = [var_dep[0], viapoint, var_dep[1]]
         else:
             # Calculate independent variables to achieve equal angle speed
-            all_points = [start] + points + [goal]
-            distances = [abs(all_points[i+1] - all_points[i]) for i in range(len(all_points)-1)]
+            var_dep = np.unwrap([start] + points + [goal])
+            distances = [abs(var_dep[i+1] - var_dep[i]) for i in range(len(var_dep)-1)]
             sum_distance = sum(distances)
             distances_norm = np.array(distances) / sum_distance
             var_indep = np.insert(np.cumsum(distances_norm), 0, 0)
@@ -151,21 +176,24 @@ def cubic_spline_interpolation(start_angles: List[float], goal_angles: List[floa
         spline = CubicSpline(var_indep, var_dep)
         t_values = np.linspace(0, 1, n_steps)
         angle_values = spline(t_values)
+        angle_values = [util.normalize_angle(v) for v in angle_values]
+
         
-        if all(low <= util.normalize_angle(v) <= high for v in angle_values):
+        if all(low < v < high for v in angle_values):
             steps.append(angle_values)
         else: 
             # Rotation in other direction using longer path
             if not viapoint_given:
                 viapoint = start + (diff / 2)
-                end = start + diff
-                var_dep = [start, viapoint, end]
+                var_dep = np.unwrap([start, viapoint, goal])
             else:
-                end = start + diff
-                var_dep = [start] + points + [end]
+                # Raise error if shortest path between points not feasible due to joint limits
+                # ToDo: evaluate invalid sections of spline and rotate in those in other direction
+                raise ValueError("No valid cubic spline path found between viapoints within joint limits.")
 
             spline = CubicSpline(var_indep, var_dep)
             angle_values = spline(t_values)
+            angle_values = [util.normalize_angle(v) for v in angle_values]
             steps.append(angle_values)
 
     # Transpose to get list of joint angle configurations at each step
