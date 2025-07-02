@@ -99,9 +99,8 @@ export default function RobotViewer() {
 
     manager.onLoad = () => {
       robot.traverse(child => child.castShadow = true);
-
       // Set inital configuration of robot after it was loaded
-      const initial_angles = [0, 0, 0, 0, 0, 0];
+      const initial_angles = [0, -Math.PI, 0, 0, 0, 0];
       setJoints(robot, initial_angles);
       scene.add(robot);
       // Rotate robot to appear upright
@@ -148,7 +147,7 @@ const animate = () => {
     window.addEventListener('resize', onResize);
     onResize();
 
-    // Clean up
+    // Free all references when closed
     return () => {
       window.removeEventListener('resize', onResize);
       mountRef.current?.removeChild(renderer.domElement);
