@@ -62,3 +62,41 @@ coverage.xml
 .cache/
 .pytest_cache/
 junit.xml
+
+# Docker
+*.pid
+*.log
+*.sock
+
+# Docker Compose override files
+docker-compose.override.yml
+
+# Docker volumes or mount caches (if you use .docker or volume dirs)
+.docker/
+volumes/
+
+# Ignore env files with secrets or per-user config
+.env
+.env.*
+
+# Docker Desktop or container metadata (if created)
+*.tar
+*.img
+*.bak
+
+# Build artifacts that shouldn't be tracked
+**/__pycache__/
+*.pyc
+*.pyo
+
+# VSCode devcontainer settings (optional)
+.devcontainer/
+
+# Nginx or backend-generated certs/temp files (if any)
+certs/
+*.crt
+*.key
+
+# Ignore local DB or FastAPI state (optional)
+*.sqlite3
+*.db
