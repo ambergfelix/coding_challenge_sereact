@@ -3,8 +3,8 @@ Unit tests for the robot API endpoint responsible for joint movement commands.
 """
 
 from fastapi.testclient import TestClient
-from backend.app.api import app
-import backend.app.api as api
+from app.api import app
+import app.api as api
 import math
 
 PI = math.pi

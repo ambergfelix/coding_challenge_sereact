@@ -5,8 +5,8 @@ Unit tests for the motion planning module used in controlling the 6-axis robot a
 
 import pytest
 import numpy as np
-from backend.robot.motion_planning import *
-import backend.utils.utils as util
+from robot.motion_planning import *
+import utils.utils as util
 import math
 
 

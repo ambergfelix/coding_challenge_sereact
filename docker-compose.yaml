@@ -1,0 +1,19 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:

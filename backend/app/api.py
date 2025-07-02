@@ -1,12 +1,14 @@
 from fastapi import FastAPI, WebSocket, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.robot.six_axis_robot import SixAxisRobot
-import backend.robot.motion_planning as motion
+import utils.utils as util
+import robot.motion_planning as motion
 from typing import List
 import numpy as np
 import asyncio
 import math
+from pathlib import Path
+import json
 
 PI = math.pi
 
@@ -14,9 +16,12 @@ app = FastAPI()
 
 # Allowed origins for CORS to enable frontend-backend interaction
 origins = [
+    "http://localhost",
+    "http://127.0.0.1",
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,6 +43,21 @@ class JointAngles(BaseModel):
     """
     angles: List[float]
 
+
+@app.on_event("startup")
+async def init_robot():
+    """
+    Loads and initializes the robot after startup
+    """
+    config_path = Path(__file__).resolve().parent.parent / "robot-model/ur5/ur5_config.json"
+    with open(config_path) as f:
+        config = json.load(f)
+
+    robot = util.robot_from_config(config)
+    initial_angles = [0, -PI/2, 0, 0, 0, 0]
+    robot.set_joint_angles(initial_angles)
+
+    app.state.robot = robot
 
 @app.post("/move")
 def move_robot(data: JointAngles, request: Request):

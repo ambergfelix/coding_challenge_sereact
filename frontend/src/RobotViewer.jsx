@@ -100,7 +100,7 @@ export default function RobotViewer() {
     manager.onLoad = () => {
       robot.traverse(child => child.castShadow = true);
       // Set inital configuration of robot after it was loaded
-      const initial_angles = [0, -Math.PI, 0, 0, 0, 0];
+      const initial_angles = [0, -Math.PI/2, 0, 0, 0, 0];
       setJoints(robot, initial_angles);
       scene.add(robot);
       // Rotate robot to appear upright
@@ -108,7 +108,7 @@ export default function RobotViewer() {
       
 
       // Connect WebSocket endpoint after robot was loaded
-      socketRef.current = new WebSocket('ws://localhost:8000/joints');
+      socketRef.current = new WebSocket(import.meta.env.VITE_WS_URL + '/joints');
       console.log("socket initialized")
 
       // Retrive desired angles from websocket data and update the 3D model's joint angles

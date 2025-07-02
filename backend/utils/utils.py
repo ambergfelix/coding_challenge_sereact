@@ -1,6 +1,6 @@
 import math
-from backend.robot.six_axis_robot import SixAxisRobot
-from backend.robot.joint import Joint
+from robot.six_axis_robot import SixAxisRobot
+from robot.joint import Joint
 import numpy as np
 from typing import List, Dict, Union
 

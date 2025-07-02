@@ -34,7 +34,9 @@ export default function JointControlPanel() {
   const sendToRobot = async () => {
     try {
       const radianAngles = angles.map(angle => MathUtils.degToRad(angle));
-      const response = await axios.post('http://localhost:8000/move', { angles: radianAngles });
+      const response = await axios.post(import.meta.env.VITE_API_URL + '/move', {
+  angles: radianAngles
+});
       setAlertMsg(response.data.message);
       setAlertSeverity('success');
       // Update slider values after robot has finnished moving

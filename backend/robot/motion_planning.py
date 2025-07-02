@@ -7,9 +7,9 @@ trajectories based on linear interpolation.
 
 import numpy as np
 from typing import List, Tuple, Optional
-from backend.robot.six_axis_robot import SixAxisRobot
-from backend.robot.collision_checker import CollisionChecker
-import backend.utils.utils as util
+from robot.six_axis_robot import SixAxisRobot
+from robot.collision_checker import CollisionChecker
+import utils.utils as util
 import time
 from scipy.interpolate import CubicSpline
 import math
@@ -62,7 +62,7 @@ def cubic_spline_interpolation_collision_avoidance(start_angles: List[float], go
     n_iter = 0
     
     
-    path_urdf = str(Path("frontend/public/robot-model/ur5/ur5.urdf"))
+    path_urdf = str(Path("/robot-model/ur5/ur5.urdf"))
     collision_check = CollisionChecker(path_urdf)
 
     # Check if goal configuration is in collision

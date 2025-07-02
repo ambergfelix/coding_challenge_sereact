@@ -4,9 +4,9 @@ Unit tests for the 6-axis robot module.
 """
 
 import pytest
-from backend.robot.joint import Joint
-from backend.robot.six_axis_robot import SixAxisRobot
-import backend.utils.utils as util
+from robot.joint import Joint
+from robot.six_axis_robot import SixAxisRobot
+import utils.utils as util
 import math
 from pathlib import Path
 import json
@@ -16,7 +16,7 @@ PI = math.pi
 @pytest.fixture
 def six_axis_robot():
     # Load config
-    config_path = Path("frontend/public/robot-model/ur5/ur5_config.json")
+    config_path = Path("/robot-model/ur5/ur5_config.json")
     with open(config_path) as f:
         config = json.load(f)
     robot = util.robot_from_config(config)

@@ -1,4 +1,4 @@
-from backend.robot.joint import Joint
+from robot.joint import Joint
 from visual_kinematics.RobotSerial import RobotSerial
 from typing import List, Tuple
 import numpy as np
