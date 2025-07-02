@@ -29,7 +29,7 @@ docker-compose down
 
 # Example input:
 Slide the sliders to desired angle and press 'Move Robot'
-Example: [60, 0, 30, 20, 10, 60]
+Example: [60, -40, 30, 20, 10, 60]
 
 # Notes:
 For this example the common 6-axis robot Universal Robot UR5 was used.
