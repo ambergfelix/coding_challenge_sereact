@@ -6,7 +6,7 @@ This project implements a Python-based control system for a stationary 6-axis ro
 
 Clone the repository:
 ```
-git clone ....
+git clone https://github.com/ambergfelix/coding_challenge_sereact.git
 ```
 in WSL2 on Windows or Linux:
 ```
